@@ -1,0 +1,28 @@
+########################## Filebeat Configuration  ############################
+
+#=========================== Filebeat prospectors =============================
+
+filebeat.prospectors:
+
+- input_type: log
+
+  paths:
+    - D:\log\*\*.log
+
+  exclude_files: [".*cmtrace.log$",".*[Jj][Ww][Tt].*log$","filebeat.*","mybeat.*"]
+
+#================================ Outputs =====================================
+
+#----------------------------- Logstash output --------------------------------
+output.logstash:
+  hosts: ["XXXXXX"]
+  loadbalance: true
+  ssl:
+    enabled: false
+    certificate_authorities:
+      - 'C:\Program Files\filebeat\certificate\ca.crt'
+
+#================================ Logging =====================================
+
+log.level: info
+path.logs: D:\log\filebeat
