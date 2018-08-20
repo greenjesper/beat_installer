@@ -13,8 +13,9 @@ A Powershell script that downloads and installs Filbeat from Elastic.
   
 ### Prerequisites
 
-A location for a filebeat.yml
-A location for a ca.crt
+ - A location for a filebeat.yml
+ - A location for a ca.crt
+
 
 ### To-do
   - Maybe change the way the script alter the logstash-output. Perhaps use paarameters instead of eviroment variables.
