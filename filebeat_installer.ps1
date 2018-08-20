@@ -9,6 +9,8 @@
 #
 ###############################################
 
+#$VerbosePreference="Continue"
+
 ### Setting all variables
 
 $installFolder = $env:ProgramFiles + "\filebeat"
@@ -20,10 +22,12 @@ $tmp_zip_folder = $env:TEMP+"\filebeat"
 $extractedFiles = $tmp_zip_folder+"\"+$filebeatVersion+"\*.*"
 $ymlFile = $installFolder+"\filebeat.yml"
 $tmpYmlFile = $env:TEMP+"\filebeat.yml"
-$ymlDownload = "https://path_to_default_filebeat_yml"
-$caDownload = "https://path_to_ca"
+$ymlDownload = "https://path.to.yml/filebeat.yml"
+$caDownload = "https://oath.to.ca/ca.crt"
 $tmpCaFile = $env:TEMP+"\ca.crt"
 $caFile = $installFolder+"\ca.crt"
+$sevenzip_installer = "http://www.7-zip.org/a/7z1801-x64.msi"
+$sevenzip_temp = $env:TEMP+"\7zip_installer.msi"
 
 ### Stop and delete Filebeat service
 if (Get-Service filebeat -ErrorAction SilentlyContinue) {
@@ -56,9 +60,28 @@ if((Test-Path -Path $tmp_zip_folder)){
 # Download file
 (New-Object System.Net.WebClient).DownloadFile($beat_down, $zip)
 
-# Unzip files to filebeat folder
+if ($PSVersionTable.PSVersion.Major -le 3) {
+ Write-Output("Old Powershell, must install 7-zip")
+ if (!(Test-Path "C:\Program Files\7-Zip")) {
+	Write-Output(" Getting 7-Zip")
+    (New-Object System.Net.WebClient).DownloadFile($sevenzip_installer, $sevenzip_temp)
+    msiexec.exe /i "C:\Windows\Temp\7zip_installer.msi" /qb
+    Start-Sleep -s 20
+    Write-Output("7-zip installed...unzipping file...")
+    Start-Process -Wait -FilePath "C:\Program Files\7-Zip\7z.exe" -ArgumentList "x `"$zip`"  -o`"$tmp_zip_folder`""
+    Write-Output("File unzipped using 7-zip")
+                                                                    
+}
+}
+else {
+Write-Output("New Powershell :)")
+# Unzip files using bulilt in functions (on Powershell 4 and newer)to filebeat folder
+Write-Output("Unzipping file...")
 Add-Type -assembly "system.io.compression.filesystem"
 [io.compression.zipfile]::ExtractToDirectory($zip, $tmp_zip_folder)
+Write-Output("File unzipped")
+}
+
 
 # Copy extracted files to installation folder
 Copy-Item $extractedFiles -Destination $installFolder -Recurse
@@ -73,7 +96,7 @@ Copy-Item $tmpCaFile -Destination $caFile -Force
 
 ### Change Logstash output based on userdnsdomain
 $Settings = ""
-if ($env:USERDNSDOMAIN -like dev1.enviroment.com" ) {
+if ($env:USERDNSDOMAIN -like "dev1.enviroment.com" ) {
    $Settings = "logstash1.dev1.enviroment.com:5044`",`"logstash2.dev1.enviroment.com:5044"
 }
 if ($env:USERDNSDOMAIN -like "dev2.enviroment.com" ) {
@@ -95,6 +118,7 @@ If (!($Settings)) {
 (Get-Content $ymlFile).Replace("XXXXXX",$Settings) | Set-Content $ymlFile -ErrorAction SilentlyContinue
 
 ### Create new service
+Write-Output("Create service")
 New-Service -name filebeat `
   -displayName filebeat `
   -binaryPathName "`"$installFolder\\filebeat.exe`" -c `"$installFolder\\filebeat.yml`" -path.home `"$installFolder`" -path.data `"C:\\ProgramData\\filebeat`""
@@ -102,7 +126,15 @@ New-Service -name filebeat `
 Start-Sleep -s 3
 
 ### Start service
+Write-Output("Start service")
 if (Get-Service filebeat -ErrorAction SilentlyContinue) {
   $newService = Get-WmiObject -Class Win32_Service -Filter "name='filebeat'"
   $newService.StartService()
+}
+
+### Clean up time!!!
+Write-Output("Clean up")
+if((Test-Path -Path $sevenzip_temp)){
+Write-Output("Remove 7-zip, if just installed")
+msiexec.exe /x "C:\Windows\Temp\7zip_installer.msi" /qb
 }
