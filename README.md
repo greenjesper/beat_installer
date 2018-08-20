@@ -7,7 +7,7 @@ A Powershell script that downloads and installs Filbeat from Elastic.
   - Remove older Filbeat installations (stops and delete filebeat-service)
   - Download filbeat-zip-archive from Elastic.co
   - Unzip and installs
-  - Copys ca-certificate and filebeat.yml from som location
+  - Copys ca-certificate and filebeat.yml from predefined location
   - Changes Logstash-output in filebeat.yml based on enviroment variables
   
 ### Prerequisites
