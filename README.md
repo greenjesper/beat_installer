@@ -9,13 +9,12 @@ A Powershell script that downloads and installs Filbeat from Elastic.
   - Unzip and installs
   - Copys ca-certificate and filebeat.yml from predefined location
   - Changes Logstash-output in filebeat.yml based on enviroment variables
+  - If Powershell 3 or older, 7-zip will be downloaded, installed and uninstalled.
   
 ### Prerequisites
 
-Currently only works on Powershell 4 and later (maybe version 3) due to som issues with unzipping files (https://stackoverflow.com/questions/37814037/how-to-unzip-a-zip-file-with-powershell-version-2-0)
 A location for a filebeat.yml
 A location for a ca.crt
 
 ### To-do
- - Add support for Powershell 2
- - Maybe change the way the script alter the logstash-output. Perhaps use paarameters instead of eviroment variables.
+  - Maybe change the way the script alter the logstash-output. Perhaps use paarameters instead of eviroment variables.
